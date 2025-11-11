@@ -53,14 +53,6 @@ export class Connection {
                     auth: {
                         key: this.options.projectKey,
                     },
-                    // 브라우저 환경을 위한 extraHeaders도 함께 제공 (선택사항)
-                    // Node.js에서는 auth 객체가 우선적으로 사용됨
-                    extraHeaders:
-                        typeof window === 'undefined'
-                            ? undefined
-                            : {
-                                  'x-project-key': this.options.projectKey,
-                              },
                     reconnection: this.options.reconnection ?? true,
                     reconnectionAttempts: this.options.reconnectionAttempts ?? 5,
                     reconnectionDelay: this.options.reconnectionDelay ?? 1000,
@@ -157,19 +149,15 @@ auth: {
 
 -   Node.js와 브라우저 환경 모두에서 안정적으로 작동
 -   백엔드 서버의 `socket.handshake.auth?.key`로 전달됨
+-   **가장 권장되는 방법**
 
-### 2. `extraHeaders` 조건부 사용
+### 2. `extraHeaders`는 Socket.IO 연결에서 지원되지 않음
 
-```typescript
-extraHeaders: typeof window === 'undefined'
-    ? undefined
-    : {
-          'x-project-key': this.options.projectKey,
-      };
-```
+**중요**: `extraHeaders`는 Socket.IO 연결에서 서버가 처리하지 않습니다.
 
--   브라우저 환경에서만 `extraHeaders` 사용
--   Node.js 환경에서는 `undefined`로 설정하여 불필요한 헤더 제거
+-   `extraHeaders`는 Express REST API (`/api/*` 엔드포인트)에서만 사용됩니다
+-   Socket.IO 연결에서는 `auth` 객체 또는 `query` 파라미터만 사용 가능합니다
+-   따라서 SDK 코드에서 `extraHeaders`를 제거하는 것이 좋습니다
 
 ## 대안: Query 파라미터 사용
 
@@ -180,7 +168,9 @@ const socketOptions: any = {
     query: {
         key: this.options.projectKey,
     },
-    // ... 나머지 옵션
+    reconnection: this.options.reconnection ?? true,
+    reconnectionAttempts: this.options.reconnectionAttempts ?? 5,
+    reconnectionDelay: this.options.reconnectionDelay ?? 1000,
 };
 
 this.socket = io(this.options.serverUrl, socketOptions);
@@ -188,24 +178,31 @@ this.socket = io(this.options.serverUrl, socketOptions);
 
 하지만 `auth` 객체를 사용하는 것이 더 권장됩니다.
 
-## 백엔드 지원 확인
+**참고**: `query` 파라미터는 URL에 노출되므로 보안상 `auth` 객체 사용을 권장합니다.
 
-백엔드 서버는 다음 순서로 키를 확인합니다:
+## 백엔드 지원 확인 및 인증 방법 요약
 
-```javascript
-const clientKey = socket.handshake.auth?.key || socket.handshake.query?.key;
+백엔드 서버(`server.js`)는 다음 순서로 키를 확인합니다:
+
+```46:50:src/server.js
+io.use((socket, next) => {
+    // auth 객체 우선 사용 (권장), 없으면 query 파라미터 사용
+    const authKey = socket.handshake.auth?.key;
+    const queryKey = socket.handshake.query?.key;
+    const clientKey = authKey || queryKey;
 ```
 
-따라서:
+**지원되는 방법**:
 
-1. `auth.key`가 있으면 우선 사용
-2. 없으면 `query.key` 사용
-3. 둘 다 없으면 연결 거부
+1. ✅ `auth.key` - 권장 방법 (Node.js/브라우저 모두 지원)
+2. ✅ `query.key` - 대안 방법 (URL에 노출되므로 보안상 덜 권장)
+3. ❌ `extraHeaders` - Socket.IO 연결에서 지원되지 않음 (Express REST API에서만 사용)
 
 ## 테스트
 
 수정 후 다음을 테스트하세요:
 
 1. **Node.js 환경**: `auth` 객체로 키가 전달되는지 확인
-2. **브라우저 환경**: `auth` 객체와 `extraHeaders` 모두 작동하는지 확인
-3. **연결 실패 시**: 적절한 에러 메시지가 표시되는지 확인
+2. **브라우저 환경**: `auth` 객체로 키가 전달되는지 확인
+3. **Query 파라미터**: 필요시 `query.key`로도 작동하는지 확인
+4. **연결 실패 시**: 적절한 에러 메시지가 표시되는지 확인
