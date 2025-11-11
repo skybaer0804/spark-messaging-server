@@ -1,0 +1,30 @@
+{
+    "name": "spark-messaging-server",
+    "version": "1.0.0",
+    "description": "Express.js + Socket.IO 기반 메시징 서버",
+    "main": "src/server.js",
+    "type": "module",
+    "scripts": {
+        "start": "node src/server.js",
+        "dev": "node --watch src/server.js",
+        "test:socket": "node test/socket-test.js"
+    },
+    "keywords": [
+        "express",
+        "socket.io",
+        "messaging",
+        "sdk"
+    ],
+    "author": "",
+    "license": "MIT",
+    "dependencies": {
+        "cors": "^2.8.5",
+        "dotenv": "^16.3.1",
+        "express": "^4.18.2",
+        "socket.io": "^4.7.2"
+    },
+    "devDependencies": {
+        "nodemon": "^3.1.10",
+        "socket.io-client": "^4.7.2"
+    }
+}
