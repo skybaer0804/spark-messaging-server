@@ -7,7 +7,8 @@
     "scripts": {
         "start": "node src/server.js",
         "dev": "node --watch src/server.js",
-        "test:socket": "node test/socket-test.js"
+        "test:socket": "node test/socket-test.js",
+        "test:callback": "node test/sdk-callback-test.js"
     },
     "keywords": [
         "express",
