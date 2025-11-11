@@ -26,11 +26,11 @@ app.use(cors());
 app.use(express.json());
 
 // 기본 라우트
-app.get('/health', (req, res) => {
+app.get('/health', validateKey, (req, res) => {
     res.json({ status: 'ok', message: 'Server is running' });
 });
 
-app.get('/status', (req, res) => {
+app.get('/status', validateKey, (req, res) => {
     res.json({
         status: 'ok',
         server: 'spark-messaging-server',
