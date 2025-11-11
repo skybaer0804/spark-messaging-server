@@ -2,24 +2,10 @@
 ### REST Client 익스텐션을 사용하여 API를 테스트합니다.
 
 @baseUrl = http://localhost:3000
-@projectKey = default-project-key-12345
 
-### 서버 상태 확인 (Health Check) - Key 필요
+### 서버 상태 확인 (Health Check) - 인증 불필요
 GET {{baseUrl}}/health
-x-project-key: {{projectKey}}
 
-### 서버 상태 및 연결된 클라이언트 수 확인 - Key 필요
-GET {{baseUrl}}/status
-x-project-key: {{projectKey}}
-
-### Key 검증 테스트 (헤더 사용 - 유일한 방법)
-GET {{baseUrl}}/status
-x-project-key: {{projectKey}}
-
-### 잘못된 Key로 테스트 (실패 예상)
-GET {{baseUrl}}/status
-x-project-key: wrong-key-12345
-
-### Key 없이 요청 테스트 (실패 예상)
+### 서버 상태 및 연결된 클라이언트 수 확인 - 인증 불필요
 GET {{baseUrl}}/status
 

@@ -3,7 +3,6 @@ import { createServer } from 'http';
 import { Server } from 'socket.io';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import { validateKey } from './middleware/keyValidation.js';
 import { setupSocketHandlers } from './socket/handlers.js';
 import { logger } from './utils/logger.js';
 
@@ -26,11 +25,13 @@ app.use(cors());
 app.use(express.json());
 
 // 기본 라우트
-app.get('/health', validateKey, (req, res) => {
+// 헬스체크용 엔드포인트 (인증 불필요)
+app.get('/health', (req, res) => {
     res.json({ status: 'ok', message: 'Server is running' });
 });
 
-app.get('/status', validateKey, (req, res) => {
+// 서버 상태 확인 엔드포인트 (인증 불필요)
+app.get('/status', (req, res) => {
     res.json({
         status: 'ok',
         server: 'spark-messaging-server',
@@ -39,9 +40,15 @@ app.get('/status', validateKey, (req, res) => {
     });
 });
 
-// Socket.IO 연결 처리
+// Socket.IO 연결 처리 및 인증
+// SDK는 auth 객체를 사용하는 것을 권장합니다 (Node.js 환경 호환성)
+// query 파라미터도 지원하지만, 보안상 auth 객체 사용을 권장합니다.
 io.use((socket, next) => {
-    const clientKey = socket.handshake.auth?.key || socket.handshake.query?.key;
+    // auth 객체 우선 사용 (권장), 없으면 query 파라미터 사용
+    const authKey = socket.handshake.auth?.key;
+    const queryKey = socket.handshake.query?.key;
+    const clientKey = authKey || queryKey;
+    const authMethod = authKey ? 'auth' : queryKey ? 'query' : null;
 
     if (!clientKey) {
         logger.warn('Connection rejected: No key provided', {
@@ -55,6 +62,7 @@ io.use((socket, next) => {
         logger.warn('Connection rejected: Invalid key', {
             socketId: socket.id,
             ip: socket.handshake.address,
+            authMethod: authMethod,
             providedKey: clientKey.substring(0, 5) + '...',
         });
         return next(new Error('Authentication failed: Invalid key'));
@@ -63,6 +71,7 @@ io.use((socket, next) => {
     logger.info('Connection authenticated', {
         socketId: socket.id,
         ip: socket.handshake.address,
+        authMethod: authMethod, // 'auth' 또는 'query'
     });
     next();
 });

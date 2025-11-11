@@ -61,6 +61,46 @@ const socket = io('http://localhost:3000', {
 const socket = io('http://localhost:3000?key=your-project-key-here');
 ```
 
+**주의사항:**
+
+-   URL에 키가 노출되므로 보안상 권장하지 않음
+-   로그나 브라우저 히스토리에 키가 남을 수 있음
+
+### 환경별 주의사항
+
+#### Node.js 환경
+
+Node.js 환경에서는 `extraHeaders`가 제대로 작동하지 않을 수 있습니다. 반드시 `auth` 객체를 사용하세요:
+
+```javascript
+// ✅ 권장: auth 객체 사용
+const socket = io('http://localhost:3000', {
+    auth: {
+        key: 'your-project-key-here',
+    },
+});
+
+// ❌ 비권장: extraHeaders는 Node.js에서 작동하지 않을 수 있음
+const socket = io('http://localhost:3000', {
+    extraHeaders: {
+        'x-project-key': 'your-project-key-here',
+    },
+});
+```
+
+#### 브라우저 환경
+
+브라우저 환경에서는 `auth` 객체와 `extraHeaders` 모두 사용 가능하지만, `auth` 객체를 권장합니다:
+
+```javascript
+// ✅ 권장: auth 객체 사용
+const socket = io('http://localhost:3000', {
+    auth: {
+        key: 'your-project-key-here',
+    },
+});
+```
+
 ### 연결 확인
 
 ```javascript

@@ -259,18 +259,16 @@ io.use((socket, next) => {
 
 **`GET /health`**
 
--   서버 상태 확인
--   **인증**: `validateKey` 미들웨어 적용 (프로젝트 키 필요)
+-   서버 상태 확인 (헬스체크용)
+-   **인증**: 불필요
 -   응답: `{ status: 'ok', message: 'Server is running' }`
--   ⚠️ 현재는 데모용 인증 사용, 프로덕션 보안 강화는 추후 업데이트 예정
 
 **`GET /status`**
 
 -   서버 상태 및 연결된 클라이언트 수 확인
--   **인증**: `validateKey` 미들웨어 적용 (프로젝트 키 필요)
+-   **인증**: 불필요
 -   응답: `{ status: 'ok', server: '...', version: '...', connectedClients: number }`
 -   `io.sockets.sockets.size`로 실시간 연결 수 조회
--   ⚠️ 현재는 데모용 인증 사용, 프로덕션 보안 강화는 추후 업데이트 예정
 
 ---
 
@@ -405,8 +403,8 @@ app.get('/protected', validateKey, (req, res) => {
 
 **현재 사용 여부:**
 
--   ✅ `/health` 및 `/status` 엔드포인트에 적용됨
--   ⚠️ 현재는 데모용으로 간단한 키 기반 인증 사용
+-   ❌ 현재 사용되지 않음 (REST API 엔드포인트는 인증 불필요)
+-   ⚠️ 향후 보호가 필요한 REST API 엔드포인트 추가 시 사용 예정
 -   ⚠️ 프로덕션 환경을 위한 보안 강화 (JWT, OAuth 등)는 추후 업데이트 예정
 
 ---
