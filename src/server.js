@@ -10,10 +10,15 @@ dotenv.config();
 
 const app = express();
 const httpServer = createServer(app);
-const origins = ['http://localhost:5173', 'http://localhost:3001'];
+
+// CORS origins 설정 (환경 변수 또는 기본값)
+const corsOrigins = process.env.CORS_ORIGINS
+    ? process.env.CORS_ORIGINS.split(',').map((origin) => origin.trim())
+    : ['http://localhost:5173', 'http://localhost:3001'];
+
 const io = new Server(httpServer, {
     cors: {
-        origin: origins,
+        origin: corsOrigins,
         methods: ['GET', 'POST'],
     },
 });
@@ -22,7 +27,12 @@ const PORT = process.env.PORT || 3000;
 const PROJECT_KEY = process.env.PROJECT_KEY || 'default-project-key-12345';
 
 // Express 미들웨어
-app.use(cors());
+app.use(
+    cors({
+        origin: corsOrigins,
+        credentials: true,
+    })
+);
 app.use(express.json());
 
 // 기본 라우트
